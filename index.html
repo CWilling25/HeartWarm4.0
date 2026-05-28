@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>哈特暖暖 · AI全能日程</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 独立样式文件 -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="flex flex-col h-screen max-w-md mx-auto relative shadow-lg bg-[#FDFBF7] overflow-hidden">
+
+    <!-- 主页面：首页、智能日历、成长工坊、树洞、AI解忧 -->
+    <div id="page-home" class="page-section page-active">
+        <div class="px-6 pt-12 pb-24">
+            <header class="text-center mb-8">
+                <p class="text-gray-400 text-sm mb-2 tracking-widest">今日治愈</p>
+                <h1 id="quote-text" class="text-xl font-light text-gray-700 leading-relaxed min-h-[64px]">
+                    "无论今天多糟糕，<br>你都已经熬过来了。"
+                </h1>
+                <button onclick="refreshQuote()" class="mt-4 text-xs text-orange-400 border border-orange-200 px-3 py-1 rounded-full hover:bg-orange-50 active:scale-95 transition-all">
+                    🔄 换一句治愈话语
+                </button>
+            </header>
+            <main class="flex flex-col gap-6">
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-50">
+                    <h2 class="text-center text-gray-600 font-medium mb-6">你现在感觉怎么样？</h2>
+                    <div class="flex justify-between items-center">
+                        <!-- 修改：所有按钮都调用 showEmotionDetail -->
+                        <button class="hover:scale-110 transition-transform flex flex-col items-center" onclick="showEmotionDetail('happy')"><span class="text-3xl mb-1">😊</span><span class="text-xs text-gray-500">开心</span></button>
+                        <button class="hover:scale-110 transition-transform flex flex-col items-center" onclick="showEmotionDetail('calm')"><span class="text-3xl mb-1">😌</span><span class="text-xs text-gray-500">平静</span></button>
+                        <button class="hover:scale-110 transition-transform flex flex-col items-center" onclick="showEmotionDetail('anxious')"><span class="text-3xl mb-1">😰</span><span class="text-xs text-gray-500">焦虑</span></button>
+                        <button class="hover:scale-110 transition-transform flex flex-col items-center" onclick="showEmotionDetail('low')"><span class="text-3xl mb-1">🌧️</span><span class="text-xs text-gray-500">低落</span></button>
+                        <button class="hover:scale-110 transition-transform flex flex-col items-center" onclick="showEmotionDetail('crash')"><span class="text-3xl mb-1">🤯</span><span class="text-xs text-gray-500">崩溃</span></button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- 新增：情绪详情页 -->
+    <div id="page-emotion-detail" class="page-section">
+        <div class="px-6 pt-12 pb-24 flex flex-col min-h-full">
+            <button onclick="switchPage('home')" class="self-start mb-6 text-gray-400 text-sm flex items-center gap-1 bg-white px-3 py-1.5 rounded-full shadow-sm">
+                ← 返回首页
+            </button>
+            <div id="emotion-content" class="bg-white rounded-3xl p-6 shadow-lg border border-orange-100">
+                <!-- 动态内容会由 JS 填充 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 以下页面保持不变：智能日历、成长工坊、树洞、AI解忧 -->
+    <div id="page-planner" class="page-section">
+        <div class="px-4 pt-6 pb-32 flex flex-col h-full">
+            <header class="text-center mb-4 shrink-0"><h1 class="text-xl font-medium text-gray-700">AI 智能日程管理</h1><p class="text-xs text-gray-400 mt-1">AI智能规划：输入任务+时间范围，自动生成详细日程</p></header>
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 mb-4 shrink-0">
+                <div class="flex justify-between items-center mb-3 px-1"><span id="calendar-month-year" class="text-sm font-semibold text-gray-700"></span><div class="flex gap-2"><button onclick="changeMonth(-1)" class="text-gray-400 hover:text-gray-600 text-xs p-1">◀</button><button onclick="changeMonth(1)" class="text-gray-400 hover:text-gray-600 text-xs p-1">▶</button></div></div>
+                <div class="grid grid-cols-7 gap-1 text-center text-[10px] text-gray-400 mb-1 font-medium"><div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div></div>
+                <div id="calendar-grid" class="grid grid-cols-7 gap-1"></div>
+            </div>
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex-1 overflow-y-auto mb-4 min-h-[120px]"><h3 id="selected-date-title" class="text-xs font-semibold text-orange-400 mb-3">📅 点击日历格查看任务</h3><div id="daily-task-list" class="space-y-2 text-xs text-gray-500"><p class="italic text-gray-400 text-center py-4">点击日期查看AI排班</p></div></div>
+            <div class="bg-white border border-gray-100 rounded-2xl p-3 shadow-md shrink-0">
+                <div class="flex gap-2 mb-2">
+                    <button onclick="loadSampleCase()" class="text-[10px] bg-orange-50 text-orange-500 border border-orange-100 px-2 py-1 rounded-md active:scale-95">💡 四级备考案例</button>
+                    <button onclick="clearAllSchedules()" class="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded-md active:scale-95">🗑️ 清空所有日程</button>
+                </div>
+                <div class="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-1.5 border border-gray-100">
+                    <button id="voice-btn" onclick="toggleVoiceMock()" class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-sm shrink-0 active:scale-95">🎙️</button>
+                    <input type="text" id="plannerInput" class="flex-1 bg-transparent text-xs outline-none text-gray-600 h-8" placeholder="例如：从明天起一个月备战四级，10套卷+6h网课，周末休息">
+                    <button id="aiPlanBtn" class="bg-gray-800 text-white text-xs px-3 py-2 rounded-lg font-medium hover:bg-gray-700">🤖 AI智能规划</button>
+                </div>
+                <p id="planning-status" class="text-[10px] text-orange-500 mt-1 text-center hidden animate-pulse">✨ AI正在为你制定专属日程，请稍等...</p>
+                <p id="voice-status" class="text-[10px] text-gray-400 mt-1 text-center hidden animate-pulse">🔴 正在聆听您的日程诉求...</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="page-growth" class="page-section">
+        <div class="px-6 pt-8 pb-24 space-y-6">
+            <header class="text-center mb-4"><h1 class="text-xl font-medium text-gray-700">心灵成长工坊</h1><p class="text-xs text-gray-400 mt-1">建立高韧性认知与行为习惯</p></header>
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col items-center py-6"><h2 class="text-xs font-semibold text-gray-700 mb-3">🧘 随身正念 · 5分钟减压呼吸</h2><div class="relative w-28 h-28 flex items-center justify-center mb-3"><div class="absolute w-full h-full rounded-full animate-breathe"></div><div class="relative z-10 w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm text-orange-400 text-[11px] font-medium">呼 / 吸</div></div><p class="text-[10px] text-gray-400">跟着光环节奏，深呼吸放空大脑</p></div>
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100"><div class="flex items-center gap-2 mb-3"><span class="text-lg">🧭</span><h2 class="text-sm font-semibold text-gray-700">人际交往·情景模拟舱</h2></div><p class="text-xs text-gray-400 mb-3">【情景】同事把分内工作推给你：“你顺便帮我做了吧，今晚我有事。”</p><div id="sim-options" class="space-y-2"><button onclick="playScenario('A')" class="w-full text-left text-xs bg-gray-50 hover:bg-gray-100 p-2.5 rounded-xl"><b>A. 勉强答应：</b>“好吧……那我帮你弄。”（内心委屈）</button><button onclick="playScenario('B')" class="w-full text-left text-xs bg-gray-50 hover:bg-gray-100 p-2.5 rounded-xl"><b>B. 直接硬怼：</b>“凭什么？你自己的事自己做！”（气氛尴尬）</button><button onclick="playScenario('C')" class="w-full text-left text-xs bg-gray-50 hover:bg-gray-100 p-2.5 rounded-xl"><b>C. 课题分离（推荐）：</b>“不好意思，我手头也有必须交付的任务，你看看能不能协调其他人？”</button></div><div id="sim-feedback" class="mt-4 hidden p-3 rounded-xl text-xs leading-relaxed"></div></div>
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100"><div class="flex items-center gap-2 mb-3"><span class="text-lg">🪞</span><h2 class="text-sm font-semibold text-gray-700">自我悦纳·打破外貌焦虑</h2></div><p class="text-xs text-gray-400 mb-4">点选你此刻最介意的“不完美”，看见真实的答案：</p><div class="grid grid-cols-2 gap-2 mb-4"><button onclick="relieveAnxiety('skin')" class="bg-orange-50/50 hover:bg-orange-50 text-gray-600 text-xs py-2 rounded-xl">🧬 皮肤瑕疵</button><button onclick="relieveAnxiety('weight')" class="bg-orange-50/50 hover:bg-orange-50 text-gray-600 text-xs py-2 rounded-xl">⚖️ 体重/身材</button><button onclick="relieveAnxiety('height')" class="bg-orange-50/50 hover:bg-orange-50 text-gray-600 text-xs py-2 rounded-xl">📏 身高遗憾</button><button onclick="relieveAnxiety('features')" class="bg-orange-50/50 hover:bg-orange-50 text-gray-600 text-xs py-2 rounded-xl">🎨 五官长相</button></div><div id="anxiety-mirror" class="bg-stone-50 border border-stone-200/60 rounded-xl p-3 min-h-[60px] flex items-center justify-center text-center"><p class="text-xs text-stone-400 italic">点击标签，启动认知重构魔法镜...</p></div></div>
+            <!-- 解压小游戏：泡泡戳戳乐 -->
+<div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+    <div class="flex items-center gap-2 mb-3">
+        <span class="text-lg">🫧</span>
+        <h2 class="text-sm font-semibold text-gray-700">指尖解压 · 戳泡泡</h2>
+    </div>
+    <p class="text-xs text-gray-400 mb-3">点击泡泡，听它「啵」地一声破掉～ 没压力，随便戳</p>
+    <div id="bubbleGameArea" class="relative bg-gradient-to-br from-sky-50 to-indigo-50 rounded-xl p-3 min-h-[280px] flex flex-wrap items-center justify-center gap-2 overflow-hidden">
+        <!-- 泡泡们会由 JS 动态生成 -->
+        </div>
+<div class="flex justify-between items-center mt-3">
+    <div class="flex items-center gap-3">
+        <span id="popCounter" class="text-orange-400 text-sm font-medium">💥 已戳破 0 个</span>
+        <button id="soundToggleBtn" class="text-gray-500 text-sm bg-gray-100 px-2 py-1 rounded-full flex items-center gap-1 active:scale-95 transition">
+            🔊 音效开
+        </button>
+    </div>
+    <button id="resetBubblesBtn" class="bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs px-3 py-1.5 rounded-full active:scale-95 transition">🔄 新的一板</button>
+</div>
+</div>
+        </div>
+    </div>
+
+    <div id="page-treehole" class="page-section">
+        <div class="px-6 pt-8 pb-24"><header class="text-center mb-6"><h1 class="text-xl font-medium text-gray-700">匿名树洞</h1><p class="text-xs text-gray-400 mt-1">你的情绪，在这里很安全</p></header><div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 mb-6"><textarea id="postContent" rows="3" class="w-full resize-none outline-none text-gray-600 text-sm" placeholder="写下你的焦虑或迷茫..."></textarea><div class="flex justify-between items-center mt-3"><span class="text-xs text-gray-400">🔒 绝对匿名</span><button onclick="publishPost()" class="bg-gray-800 text-white text-sm px-5 py-2 rounded-full font-medium active:scale-95">发布</button></div></div><div id="treeHoleFeed" class="space-y-4"><div class="bg-white p-4 rounded-xl border border-gray-50 shadow-sm"><p class="text-gray-600 text-sm leading-relaxed">论文查重率太高了，改了好几天还是降不下来，深夜真的好崩溃。</p><p class="text-xs text-gray-400 mt-2 text-right">来自：焦虑的毕业生</p></div></div></div>
+    </div>
+
+    <!-- AI 解忧助手页面 -->
+    <div id="page-chat" class="page-section">
+        <div class="flex flex-col h-full pt-6">
+            <header class="text-center mb-2 px-6 shrink-0">
+                <h1 class="text-xl font-medium text-gray-700">AI 解忧助手</h1>
+                <p class="text-xs text-gray-400 mt-1">Gemini大模型驱动 | 共情陪伴 · 拖延拆解</p>
+            </header>
+            <div id="chatBox" class="flex-1 overflow-y-auto px-6 space-y-4 pb-4 chat-scroll">
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-lg shrink-0">🤖</div>
+                    <div class="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm text-sm text-gray-600 max-w-[80%] leading-relaxed break-words">嗨，我是你的AI心灵伙伴✨ 无论你在焦虑、拖延或孤独，我都会认真倾听并陪你找到突破口。<br>试试和我聊聊：“最近总是拖延论文怎么办？” 或 “人际关系好累”～</div>
+                </div>
+            </div>
+            <div class="p-4 bg-white border-t border-gray-100 shrink-0 mb-16">
+                <div class="flex gap-2">
+                    <input type="text" id="chatInput" class="flex-1 bg-gray-50 rounded-full px-4 py-2 text-sm outline-none focus:ring-1 focus:ring-orange-200" placeholder="向AI倾诉你的心事..." autocomplete="off">
+                    <button id="sendChatBtn" class="bg-orange-400 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-orange-500 transition shadow-md">➤</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<div id="page-bottle" class="page-section">
+    <div class="px-6 pt-8 pb-24 flex flex-col min-h-full">
+        <header class="text-center mb-6">
+            <h1 class="text-xl font-medium text-gray-700">🍾 漂流瓶</h1>
+            <p class="text-xs text-gray-400 mt-1">匿名传播温暖 · 让善意在陌生人之间流淌</p>
+        </header>
+        <div class="flex gap-2 mb-5 bg-gray-100 p-1 rounded-xl">
+            <button id="tab-send" class="flex-1 py-2 text-sm rounded-lg font-medium transition-all bg-white shadow-sm text-orange-500">📨 投放漂流瓶</button>
+            <button id="tab-receive" class="flex-1 py-2 text-sm rounded-lg font-medium transition-all text-gray-500">🎁 捞一个漂流瓶</button>
+        </div>
+        <div id="send-mode" class="bg-white rounded-2xl p-5 shadow-sm border border-orange-100">
+            <p class="text-xs text-gray-500 mb-3">💡 你的话语可能会成为某个陌生人的一束光。<br>内容会经过AI暖心筛选，请写下你的鼓励：</p>
+            <textarea id="bottleMessage" rows="4" maxlength="200" class="w-full resize-none outline-none bg-orange-50/40 rounded-xl p-3 text-sm text-gray-700" placeholder="例如：最近有点累？没关系，你已经做得很棒了，明天一定会更好！"></textarea>
+            <div class="flex justify-between items-center mt-3 text-xs text-gray-400">
+                <span>✨ AI将自动过滤不当内容</span>
+                <span id="charCount">0</span><span>/200字</span>
+            </div>
+            <button id="sendBottleBtn" class="w-full mt-4 bg-orange-400 hover:bg-orange-500 text-white py-2.5 rounded-xl font-medium transition-all active:scale-95 shadow-md">📤 漂流至大海</button>
+        </div>
+        <div id="receive-mode" class="bg-white rounded-2xl p-5 shadow-sm border border-orange-100 hidden">
+            <div id="randomMessageDisplay" class="min-h-[200px] flex flex-col items-center justify-center text-center">
+                <div class="text-4xl mb-3 opacity-40">🍾</div>
+                <p class="text-gray-400 text-sm">点击下方按钮，随机阅读一个陌生人的漂流瓶～</p>
+            </div>
+            <button id="fetchBottleBtn" class="w-full mt-5 bg-orange-100 hover:bg-orange-200 text-orange-700 py-2.5 rounded-xl font-medium transition-all active:scale-95">🌊 捞一个漂流瓶</button>
+        </div>
+    </div>
+</div>
+
+    <!-- 底部导航栏 -->
+    <nav class="bg-white border-t border-gray-100 flex justify-around py-2 w-full rounded-t-xl fixed bottom-0 max-w-md z-50">
+        <button id="nav-home" onclick="switchPage('home')" class="nav-btn text-orange-400 flex flex-col items-center text-xs font-medium flex-1"><span class="text-xl mb-1">🏠</span>首页</button>
+        <button id="nav-planner" onclick="switchPage('planner')" class="nav-btn text-gray-400 flex flex-col items-center text-xs flex-1"><span class="text-xl mb-1">📅</span>日历</button>
+        <button id="nav-growth" onclick="switchPage('growth')" class="nav-btn text-gray-400 flex flex-col items-center text-xs flex-1"><span class="text-xl mb-1">🌱</span>成长</button>
+        <button id="nav-treehole" onclick="switchPage('treehole')" class="nav-btn text-gray-400 flex flex-col items-center text-xs flex-1"><span class="text-xl mb-1">🌳</span>树洞</button>
+        <button id="nav-bottle" onclick="switchPage('bottle')" class="nav-btn text-gray-400 flex flex-col items-center text-xs flex-1"><span class="text-xl mb-1">🍾</span>漂流瓶</button>
+        <button id="nav-chat" onclick="switchPage('chat')" class="nav-btn text-gray-400 flex flex-col items-center text-xs flex-1"><span class="text-xl mb-1">🤖</span>解忧</button>
+    </nav>
+
+    <!-- 独立脚本文件 -->
+    <script src="script.js"></script>
+    <!-- 自定义弹窗模态框 -->
+<div id="customModal" class="fixed inset-0 flex items-center justify-center z-50 bg-black/40 transition-all duration-200 hidden">
+    <div class="bg-white w-4/5 max-w-sm rounded-3xl p-6 shadow-2xl transform transition-all scale-95 animate-fade-in-up">
+        <div class="text-center">
+            <div id="modalIcon" class="text-4xl mb-2">✅</div>
+            <p id="modalMessage" class="text-gray-700 text-base leading-relaxed mb-5">AI日程规划已完成！</p>
+            <button id="modalConfirmBtn" class="bg-orange-400 hover:bg-orange-500 text-white px-6 py-2 rounded-full text-sm font-medium shadow-md active:scale-95 transition-all">
+                好的
+            </button>
+        </div>
+    </div>
+</div>
+</body>
+</html>
